@@ -1,10 +1,11 @@
 package com.gale_matany.ex2;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.PictureDrawable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -18,15 +19,21 @@ public class GameView extends View {
     private static final int GAME_OVER = 3;
 
     private int gameState;
-    private Paint textStartGamePaint, textPaint, circleLifePaint, textLivesPaint, circleDeathPaint, numPointPaint, linePaint;
-    private float xTextScore, yTextScore, xLifeDeath, yLifeDeath, radiusLifeDeath;
-    private int score = 0;
+    private final Paint textStartGamePaint, textPaint, textLivesPaint;
+    private float xTextScore, yTextScore, xLifeDeath, yLifeDeath, brickW, brickH;
+    private int score;
 
-    Thread tickThread;
+    Thread gameThread;
 
     private BrickCollection bricks;
     private Paddle paddle;
     private Ball ball;
+    private Lives lives;
+
+    private Bitmap life;
+    private Bitmap death;
+
+    private float width, height;
 
 
 
@@ -34,43 +41,27 @@ public class GameView extends View {
     {
         super(context, attrs);
 
-        textStartGamePaint = new Paint();
-        textStartGamePaint.setColor(Color.WHITE);
-        textStartGamePaint.setTextSize(100);
-        textStartGamePaint.setTextAlign(Paint.Align.CENTER);
+        this.textStartGamePaint = new Paint();
+        this.textStartGamePaint.setColor(Color.WHITE);
+        this.textStartGamePaint.setTextSize(100);
+        this.textStartGamePaint.setTextAlign(Paint.Align.CENTER);
 
-        textPaint = new Paint();
-        textPaint.setColor(Color.WHITE);
-        textPaint.setTextSize(50);
+        this.textPaint = new Paint();
+        this.textPaint.setColor(Color.WHITE);
+        this.textPaint.setTextSize(70);
 
-        textLivesPaint = new Paint();
-        textLivesPaint.setColor(Color.WHITE);
-        textLivesPaint.setTextSize(50);
-        textLivesPaint.setTextAlign(Paint.Align.RIGHT);
-
-        circleLifePaint = new Paint();
-        circleLifePaint.setColor(Color.WHITE);
-        circleLifePaint.setStyle(Paint.Style.FILL);
-//        circlePaint.setTextAlign(Paint.Align.RIGHT);
-
-        circleDeathPaint = new Paint();
-        circleDeathPaint.setColor(Color.rgb(68,68,68));
-        circleDeathPaint.setStrokeWidth(5);
-        circleDeathPaint.setStyle(Paint.Style.FILL);
-//        circleDeathPaint.setTextAlign(Paint.Align.RIGHT);
+        this.textLivesPaint = new Paint();
+        this.textLivesPaint.setColor(Color.WHITE);
+        this.textLivesPaint.setTextSize(70);
+        this.textLivesPaint.setTextAlign(Paint.Align.RIGHT);
 
 
-        numPointPaint = new Paint();
-        numPointPaint.setColor(Color.RED);
-        numPointPaint.setStrokeWidth(5);
-        numPointPaint.setStyle(Paint.Style.FILL);
-
-        linePaint = new Paint();
-        linePaint.setColor(Color.RED);
-        linePaint.setStyle(Paint.Style.FILL);
-
-        gameState = GET_READY;
-
+        this.score = 0;
+        this.gameState = GET_READY;
+        this.life = BitmapFactory.decodeResource(getResources(), R.drawable.life);
+        this.life = Bitmap.createScaledBitmap(this.life, 85, 80, true);
+        this.death = BitmapFactory.decodeResource(getResources(), R.drawable.death);
+        this.death = Bitmap.createScaledBitmap(this.death, 85, 80, true);
     }
 
 
@@ -80,27 +71,23 @@ public class GameView extends View {
         super.onDraw(canvas);
 
 
+        this.ball.draw(canvas);
+        this.bricks.draw(canvas);
+        this.paddle.draw(canvas);
+        this.lives.drawLife(canvas);
+        canvas.drawText("Lives: ", this.xLifeDeath, this.yTextScore, this.textLivesPaint);
+        canvas.drawText("Score: " + this.score, this.xTextScore, this.yTextScore, this.textPaint);
 
-
-        canvas.drawText("Score: " + score, xTextScore, yTextScore, textPaint);
-
-        canvas.drawCircle(xLifeDeath, yLifeDeath, radiusLifeDeath, circleLifePaint);
-        canvas.drawCircle(xLifeDeath-70, yLifeDeath, radiusLifeDeath, circleLifePaint);
-        canvas.drawCircle(xLifeDeath-140, yLifeDeath, radiusLifeDeath, circleLifePaint);
-        canvas.drawCircle(xLifeDeath-140, yLifeDeath, radiusLifeDeath-5, circleDeathPaint);
-        canvas.drawText("Lives: ", xLifeDeath-175, yTextScore, textLivesPaint);
-
-        bricks.draw(canvas);
-        paddle.draw(canvas);
-        ball.draw(canvas);
 
         if(gameState == GET_READY)
         {
-            canvas.drawText("Click to PLAY!", (float) getWidth() / 2, (float) getHeight()/2, textStartGamePaint);
+            canvas.drawText("Click to PLAY!", (float) getWidth() / 2, (float) getHeight()/2, this.textStartGamePaint);
         }
         if(gameState == PLAYING){
-            ball.move(getWidth(), getHeight());
-            invalidate();
+
+        }
+        if(gameState == GAME_OVER) {
+            canvas.drawText("GAME OVER - You Lose!", (float) getWidth() / 2, (float) getHeight()/2, this.textStartGamePaint);
         }
 
     }
@@ -110,21 +97,26 @@ public class GameView extends View {
     {
         super.onSizeChanged(w, h, oldw, oldh);
 
-        bricks = new BrickCollection(getWidth(), getHeight());
-        float brickW = bricks.getBrickW();
-        float brickH = bricks.getBrickH();
-        paddle = new Paddle((float) (getWidth()/2 - brickW/2), getHeight()-150, (float) (getWidth()/2 + brickW/2), getHeight()-150, brickH);
+        this.width = getWidth();
+        this.height = getHeight();
 
-        ball = new Ball((float) getWidth()/2, (float) getHeight()-150-bricks.getBrickH(), bricks.getBrickH()/2);
-        xTextScore = 20;
-        yTextScore = 65;
+        this.xTextScore = 40;
+        this.yTextScore = 75;
 
-        xLifeDeath = w-50;
-        yLifeDeath = 50;
-        radiusLifeDeath = 25;
+        this.xLifeDeath = getWidth()-320;
+        this.yLifeDeath = 20;
+        this.lives = new Lives(life,width-100, yLifeDeath);
 
-        startClock();
+        this.bricks = new BrickCollection(width, height);
+        this.brickW = this.bricks.getBrickW();
+        this.brickH = this.bricks.getBrickH();
 
+        this.paddle = new Paddle(this.width/2 - brickW/2, height-150, this.width/2 + this.brickW/2, this.height-150, this.brickH);
+
+        this.ball = new Ball(this.width/2, (float) (this.height-150-this.brickH*0.75), this.brickH/2);
+
+
+        setGameThread();
     }
 
     @Override
@@ -136,69 +128,76 @@ public class GameView extends View {
         switch (event.getAction())
         {
             case MotionEvent.ACTION_DOWN:
-                if(gameState == GET_READY)
+                if(this.gameState == GET_READY)
                 {
-                    gameState = PLAYING;
+                    this.gameState = PLAYING;
                     invalidate();
                 }
-                if(gameState == PLAYING)
+                if(this.gameState == PLAYING)
                 {
-                    paddle.setX(tx, bricks.getBrickW(), getWidth());
+                    paddle.setX(tx, this.brickW, this.width);
                     invalidate();
                 }
-//                else
-//                {
-//                    // check if red ball catch for dragging
-//                    if(!isDraging && redBall.isInside(tx,ty))
-//                        isDraging = true;
-//                }
                 break;
+
             case MotionEvent.ACTION_MOVE:
-//                if(isDraging)
-//                {
-//                    redBall.setX(tx);
-//                    redBall.setY(ty);
-//                }
+                if(this.gameState == PLAYING)
+                {
+                    this.paddle.setX(tx, this.brickW, this.width);
+                    invalidate();
+                }
                 break;
 
             case MotionEvent.ACTION_UP:
-//                ///Log.d("mylog", "MotionEvent.ACTION_UP ");
-//                isDraging = false;
 
                 break;
         }
         return true;
     }
 
-    public void startClock()
+    public void setGameThread()
     {
-//        tickThread = new Thread(new Runnable()
-//        {
-//            @Override
-//            public void run()
-//            {
-//                while(true)
-//                {
-//                    // update Hands
-//                    score++;
-//                    if(score == 10){
-//
-//                    }
-//                    SystemClock.sleep(1000);
-//
-//                    // call to onDraw() from Thread
-//                    postInvalidate();
-//
-//                    // sleep 1 second
-//                }
-//            }
-//        });
-//        tickThread.start();
+        this.gameThread = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                boolean isStrike;
+                while(true)
+                {
+                    if(gameState == PLAYING){
+                        ball.move(width, height);
+                        isStrike = ball.isStrike(height);
+                        if(isStrike){
+                            setScore();
+
+                            lives.setDead(death);
+                            if(lives.getCurrLife() == -1) {
+                                gameState = GAME_OVER;
+                                resetGame();
+                                postInvalidate();
+                                break;
+                            }else{
+                                gameState = GET_READY;
+                                resetGame();
+                            }
+                        }
+                        postInvalidate();
+                    }
+                    SystemClock.sleep(10);
+                }
+                gameThread = null;
+            }
+        });
+        this.gameThread.start();
     }
 
+    public void resetGame(){
+        this.ball.resetBall(this.width/2, (float) (this.height-150-this.brickH*0.75));
+        this.paddle.resetPaddle(this.width/2 - this.brickW/2, this.height-150, this.width/2 + this.brickW/2, this.height-150);
+    }
 
-
-
-
-
+    public void setScore(){
+        this.score += 5 * (this.lives.getCurrLife()+1);
+    }
 }

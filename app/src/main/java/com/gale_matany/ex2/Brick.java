@@ -6,8 +6,9 @@ import android.graphics.Paint;
 
 public class Brick {
 
-    private float xStart, yStart, xEnd, yEnd;
-    private Paint brickPaint;
+    private final float xStart, yStart, xEnd, yEnd;
+    private final Paint brickPaint;
+    private boolean isDead;
 
     public Brick(float xStart, float yStart, float xEnd, float yEnd)
     {
@@ -15,15 +16,21 @@ public class Brick {
         this.yStart = yStart;
         this.xEnd = xEnd;
         this.yEnd = yEnd;
+        this.isDead = false;
 
-        brickPaint = new Paint();
-        brickPaint.setColor(Color.RED);
-        brickPaint.setStyle(Paint.Style.FILL);
+        this.brickPaint = new Paint();
+        this.brickPaint.setColor(Color.RED);
+        this.brickPaint.setStyle(Paint.Style.FILL);
+    }
+
+    public void setIsDead(boolean isDead){
+        this.isDead = isDead;
     }
 
     public void draw(Canvas canvas)
     {
-        canvas.drawRect(xStart, yStart, xEnd, yEnd, brickPaint);
+        if(!this.isDead)
+            canvas.drawRect(this.xStart, this.yStart, this.xEnd, this.yEnd, this.brickPaint);
     }
 
 }
