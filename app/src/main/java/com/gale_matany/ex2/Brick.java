@@ -6,7 +6,7 @@ import android.graphics.Paint;
 
 public class Brick {
 
-    private final float xStart, yStart, xEnd, yEnd;
+    private float xStart, yStart, xEnd, yEnd;
     private final Paint brickPaint;
     private boolean isDead;
 
@@ -33,4 +33,40 @@ public class Brick {
             canvas.drawRect(this.xStart, this.yStart, this.xEnd, this.yEnd, this.brickPaint);
     }
 
+    public void draw(Canvas canvas, Paint paint)
+    {
+            canvas.drawRect(this.xStart, this.yStart, this.xEnd, this.yEnd, paint);
+    }
+
+    public void setXStart(float xStart) {
+        this.xStart = xStart;
+    }
+
+    public void setYStart(float yStart) {
+        this.yStart = yStart;
+    }
+
+    public void setXEnd(float xEnd) {
+        this.xEnd = xEnd;
+    }
+
+    public void setYEnd(float yEnd) {
+        this.yEnd = yEnd;
+    }
+
+    public float getXStart() {
+        return xStart;
+    }
+
+    public float getYStart() {
+        return yStart;
+    }
+
+    public float getXEnd() {
+        return xEnd;
+    }
+
+    public float getYEnd() {
+        return yEnd;
+    }
 }

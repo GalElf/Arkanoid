@@ -4,10 +4,10 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/arkanoid_ico"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
+        android:roundIcon="@drawable/arkanoid_ico"
+        android:supportsRtl="false"
         android:theme="@style/Theme.Arkanoid">
         <activity android:name=".MainActivity">
             <intent-filter>

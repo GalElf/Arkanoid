@@ -38,6 +38,14 @@ public class Lives {
         this.currLife--;
     }
 
+    public void resetLive(Bitmap life) {
+        for (int i=0; i<NUM_LIVES; i++) {
+            lives[i] = life;
+//            isDead[i] = false;
+        }
+        this.currLife = 2;
+    }
+
     public int getCurrLife(){
         return this.currLife;
     }
