@@ -29,6 +29,7 @@ public class GameView extends View {
     private BrickCollection bricks;
     private Paddle paddle;
     private Ball ball;
+//    private Ball ball1, ball2, ball3, ball4, ball5;
     private Lives lives;
 
     private Bitmap life;
@@ -76,7 +77,12 @@ public class GameView extends View {
         super.onDraw(canvas);
 
 
+//        this.ball.draw(canvas);
         this.ball.draw(canvas);
+//        this.ball2.draw(canvas);
+//        this.ball3.draw(canvas);
+//        this.ball4.draw(canvas);
+//        this.ball5.draw(canvas);
         this.bricks.draw(canvas);
         this.paddle.draw(canvas);
         this.lives.drawLife(canvas);
@@ -118,7 +124,13 @@ public class GameView extends View {
 
         this.paddle = new Paddle(this.width/2 - brickW/2, height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
 
+        int dis = 100;
         this.ball = new Ball(this.width/2, this.height-150-this.brickH/2-this.brickH/2, this.brickH/2);
+//        this.ball1 = new Ball(this.width/2, this.height-150-this.brickH/2-this.brickH/2-dis, this.brickH/2);
+//        this.ball2 = new Ball(this.width/2-this.brickW/2-dis-this.brickH/2, (float) (this.height-150-this.brickH*0.25), this.brickH/2);
+//        this.ball3 = new Ball(this.width/2+this.brickW/2+dis+this.brickH/2, (float) (this.height-150-this.brickH*0.25), this.brickH/2);
+//        this.ball4 = new Ball(this.width/2 - brickW/2-dis, height-150-this.brickH/2-dis, this.brickH/2);
+//        this.ball5 = new Ball(this.width/2 + brickW/2+dis, height-150-this.brickH/2-dis, this.brickH/2);
 
 
     }
@@ -198,7 +210,7 @@ public class GameView extends View {
                     while (true) {
                         if (gameState == PLAYING) {
                             ball.move(width, height, paddle);
-//                            ball.checkBallCollideBrick(context, paddle);
+                            ball.checkBallCollideBrick(context, paddle, brickW, brickH);
                             isStrike = ball.isStrike(height);
                             if (isStrike) {
                                 setScore();
@@ -215,7 +227,7 @@ public class GameView extends View {
                             }
                             postInvalidate();
                         }
-                        SystemClock.sleep(10);
+                        SystemClock.sleep(15);
                     }
                     gameThread = null;
                 }
@@ -227,15 +239,18 @@ public class GameView extends View {
 
 
     public void resetGame(int resetType){
-        this.ball.resetBall(this.width/2, this.height-150-this.brickH/2-this.brickH/2);
-        this.paddle.resetPaddle(this.width/2 - brickW/2, height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
         if(resetType == 1) {
             score = 0;
             this.lives.resetLive(this.life);
+            bricks.resetBricks(this.width, this.height);
+            this.brickW = bricks.getBrickW();
+            this.brickH = bricks.getBrickH();
             this.gameThread = null;
             this.paddleThread = null;
             this.gameState = GET_READY;
         }
+        this.ball.resetBall(this.width/2, this.height-150-this.brickH/2-this.brickH/2);
+        this.paddle.resetPaddle(this.width/2 - brickW/2, height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
     }
 
     public void setScore(){

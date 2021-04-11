@@ -18,18 +18,18 @@ public class BrickCollection {
     private int cols, rows;
     private float brickW, brickH;
 
-    private final Brick[][] bricks;
+    private Brick[][] bricks;
 
     public BrickCollection(float width, float height)
     {
         getRandomColsRows(width, height);
-        this.bricks = new Brick[rows][cols];
+        this.bricks = new Brick[this.rows][this.cols];
         crateBricks(width, height);
     }
 
     private void getRandomColsRows(float width, float height){
-        this.cols = (int) (Math.random() * (MAX_COLS+1 - MIN_COLS)) + MIN_COLS;
-        this.rows = (int) (Math.random() * (MAX_ROWS+1 - MIN_ROWS)) + MIN_ROWS;
+        this.cols = (int) (Math.random() * (this.MAX_COLS+1 - this.MIN_COLS)) + this.MIN_COLS;
+        this.rows = (int) (Math.random() * (this.MAX_ROWS+1 - this.MIN_ROWS)) + this.MIN_ROWS;
         this.brickW = (width-((this.cols-1)*this.SPACE))/this.cols;
         this.brickH = height/20;
     }
@@ -42,6 +42,12 @@ public class BrickCollection {
                         (float) (j+1)*this.brickW+j*this.SPACE, startH+this.brickH*(i+1)+(i+1)*this.SPACE);
             }
         }
+    }
+
+    public void resetBricks(float width, float height){
+        getRandomColsRows(width, height);
+        this.bricks = new Brick[rows][cols];
+        crateBricks(width, height);
     }
 
     public float getBrickW(){

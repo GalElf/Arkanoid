@@ -38,7 +38,7 @@ public class Paddle {
 
     public void setX(float x, float brickW, float screenWidth)
     {
-        int pixelMovement = 13;
+        int pixelMovement = 5;
         if(x < screenWidth/2) {
             if (paddle.getXStart() - pixelMovement < 0) {
                 paddle.setXStart(0);
