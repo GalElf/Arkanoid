@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.media.MediaPlayer;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -14,29 +15,37 @@ import android.view.View;
 
 public class GameView extends View {
 
-    private static final int GET_READY = 1;
-    private static final int PLAYING = 2;
-    private static final int GAME_OVER = 3;
+    private final int GET_READY = 1;
+    private final int PLAYING = 2;
+    private final int GAME_OVER = 3;
+
+    private final int MAX_COLS = 7;
+    private final int MIN_COLS = 3;
+    private final int MAX_ROWS = 6;
+    private final int MIN_ROWS = 2;
+
+    private final int cols, rows;
+
 
     private int gameState;
+    boolean isWon;
     private final Paint textStartGamePaint, textPaint, textLivesPaint;
     private float xTextScore, yTextScore, xLifeDeath, yLifeDeath, brickW, brickH;
     private int score;
     private float xMove;
 
-    Thread gameThread, paddleThread;
-    private boolean paddleThreadNeedToMove;
+    private Thread gameThread;
+    private boolean paddleNeedToMove, threadGame;
     private BrickCollection bricks;
     private Paddle paddle;
     private Ball ball;
-//    private Ball ball1, ball2, ball3, ball4, ball5;
     private Lives lives;
 
     private Bitmap life;
     private Bitmap death;
 
     private float width, height;
-    private Context context;
+    private final Context context;
 
 
 
@@ -58,16 +67,20 @@ public class GameView extends View {
         this.textLivesPaint.setTextSize(70);
         this.textLivesPaint.setTextAlign(Paint.Align.RIGHT);
 
+        this.cols = (int) (Math.random() * (this.MAX_COLS+1 - this.MIN_COLS)) + this.MIN_COLS;
+        this.rows = (int) (Math.random() * (this.MAX_ROWS+1 - this.MIN_ROWS)) + this.MIN_ROWS;
 
         this.score = 0;
         this.gameState = GET_READY;
-        this.paddleThreadNeedToMove = false;
         this.life = BitmapFactory.decodeResource(getResources(), R.drawable.life);
         this.life = Bitmap.createScaledBitmap(this.life, 85, 80, true);
         this.death = BitmapFactory.decodeResource(getResources(), R.drawable.death);
         this.death = Bitmap.createScaledBitmap(this.death, 85, 80, true);
         this.gameThread = null;
-        this.paddleThread = null;
+
+        this.paddleNeedToMove = false;
+        this.isWon = false;
+
     }
 
 
@@ -75,14 +88,11 @@ public class GameView extends View {
     protected void onDraw(Canvas canvas)
     {
         super.onDraw(canvas);
+        Log.i("test", "game state: " + this.gameState);
 
-
-//        this.ball.draw(canvas);
+        gamePlay();
         this.ball.draw(canvas);
-//        this.ball2.draw(canvas);
-//        this.ball3.draw(canvas);
-//        this.ball4.draw(canvas);
-//        this.ball5.draw(canvas);
+
         this.bricks.draw(canvas);
         this.paddle.draw(canvas);
         this.lives.drawLife(canvas);
@@ -90,15 +100,22 @@ public class GameView extends View {
         canvas.drawText("Score: " + this.score, this.xTextScore, this.yTextScore, this.textPaint);
 
 
-        if(gameState == GET_READY)
+        if(this.gameState == GET_READY)
         {
-            canvas.drawText("Click to PLAY!", (float) getWidth() / 2, (float) getHeight()/2, this.textStartGamePaint);
+            canvas.drawText("Click to PLAY!", this.width/2, this.height/2, this.textStartGamePaint);
         }
-        if(gameState == PLAYING){
-
+        if(this.gameState == PLAYING){
+            if(this.paddleNeedToMove){
+                this.paddle.setX(this.xMove, this.brickW, this.width);
+            }
         }
-        if(gameState == GAME_OVER) {
-            canvas.drawText("GAME OVER - You Lose!", (float) getWidth() / 2, (float) getHeight()/2, this.textStartGamePaint);
+        if(this.gameState == GAME_OVER) {
+            String gameWinLoseTxt = "";
+            if(this.isWon)
+                gameWinLoseTxt = "You Win!";
+            else
+                gameWinLoseTxt = "You Lose!";
+            canvas.drawText("GAME OVER - " + gameWinLoseTxt, this.width/2, this.height/2, this.textStartGamePaint);
         }
 
     }
@@ -116,32 +133,31 @@ public class GameView extends View {
 
         this.xLifeDeath = getWidth()-320;
         this.yLifeDeath = 20;
-        this.lives = new Lives(life,width-100, yLifeDeath);
+        this.lives = new Lives(this.life,this.width-100, this.yLifeDeath);
 
-        this.bricks = new BrickCollection(width, height);
+        this.bricks = new BrickCollection(width, height, this.cols, this.rows);
         this.brickW = this.bricks.getBrickW();
         this.brickH = this.bricks.getBrickH();
 
-        this.paddle = new Paddle(this.width/2 - brickW/2, height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
+        this.paddle = new Paddle(this.width/2 - this.brickW/2, this.height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
 
-        int dis = 100;
         this.ball = new Ball(this.width/2, this.height-150-this.brickH/2-this.brickH/2, this.brickH/2);
+//        int dis = 100;
 //        this.ball1 = new Ball(this.width/2, this.height-150-this.brickH/2-this.brickH/2-dis, this.brickH/2);
 //        this.ball2 = new Ball(this.width/2-this.brickW/2-dis-this.brickH/2, (float) (this.height-150-this.brickH*0.25), this.brickH/2);
 //        this.ball3 = new Ball(this.width/2+this.brickW/2+dis+this.brickH/2, (float) (this.height-150-this.brickH*0.25), this.brickH/2);
 //        this.ball4 = new Ball(this.width/2 - brickW/2-dis, height-150-this.brickH/2-dis, this.brickH/2);
 //        this.ball5 = new Ball(this.width/2 + brickW/2+dis, height-150-this.brickH/2-dis, this.brickH/2);
-
+//        this.ball = new Ball((float) (677.6667-50), 397+50, this.brickH/2);
 
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
-        float tx = event.getX();
-        float ty = event.getY();
-        this.xMove = tx;
-        setGameThread();
+        this.xMove = event.getX();
+
+        setThread();
 
         switch (event.getAction())
         {
@@ -151,103 +167,75 @@ public class GameView extends View {
                     this.gameState = PLAYING;
                     invalidate();
                 }
+
                 if(this.gameState == PLAYING)
-                {
-                    this.paddleThreadNeedToMove = true;
-                    setPaddleThread();
-                }
+                    this.paddleNeedToMove = true;
+
                 if(this.gameState == GAME_OVER)
                 {
-                    this.gameState = PLAYING;
+                    this.gameState = GET_READY;
+                    resetGame(1);
                     invalidate();
                 }
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                if(this.gameState == PLAYING)
-                {
-                    setPaddleThread();
-                }
+
                 break;
+
             case MotionEvent.ACTION_UP:
                 if(this.gameState == PLAYING)
-                {
-                    this.paddleThreadNeedToMove = false;
-                }
+                    this.paddleNeedToMove = false;
                 break;
         }
         return true;
     }
 
-    public void setPaddleThread()
-    {
-        if(this.paddleThread == null) {
-            this.paddleThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (paddleThreadNeedToMove) {
-                        if (gameState == PLAYING) {
-                            paddle.setX(xMove, brickW, width);
-                            postInvalidate();
-                        }
-                        SystemClock.sleep(10);
-                    }
-                    paddleThread = null;
-                }
-            });
-            this.paddleThread.start();
-        }
-    }
-
-
-
-    public void setGameThread() {
-        if (this.gameThread == null) {
-            this.gameThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    boolean isStrike;
-                    while (true) {
-                        if (gameState == PLAYING) {
-                            ball.move(width, height, paddle);
-                            ball.checkBallCollideBrick(context, paddle, brickW, brickH);
-                            isStrike = ball.isStrike(height);
-                            if (isStrike) {
-                                setScore();
-                                lives.setDead(death);
-                                if (lives.getCurrLife() == -1) {
-                                    gameState = GAME_OVER;
-                                    resetGame(1);
-                                    postInvalidate();
-                                    break;
-                                } else {
-                                    gameState = GET_READY;
-                                    resetGame(0);
-                                }
+    private void gamePlay(){
+        if (gameState == PLAYING) {
+            this.ball.move(this.width, this.height);
+            this.ball.checkBallCollideBrick(this.paddle);
+            for(int i=0; i<bricks.getRows(); i++){
+                for(int j=0; j<bricks.getCols(); j++){
+                    boolean isCollide = ball.checkBallCollideBricks(this.bricks.getBrick(i, j));
+                    if(isCollide){
+                        MediaPlayer mp = MediaPlayer.create(this.context, R.raw.brick_broken3);
+                        mp.start();
+                        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            public void onCompletion(MediaPlayer mp) {
+                                mp.reset();
+                                mp.release();
                             }
-                            postInvalidate();
-                        }
-                        SystemClock.sleep(15);
+                        });
+                        setScore();
                     }
-                    gameThread = null;
                 }
-            });
-            this.gameThread.start();
+            }
+            this.isWon = this.bricks.checkWin();
+            if(this.isWon)
+                this.gameState = GAME_OVER;
+            boolean isStrike = ball.isStrike(height);
+            if (isStrike) {
+                this.lives.setDead(death);
+                if (lives.getCurrLife() == -1)
+                    this.gameState = GAME_OVER;
+                else {
+                    this.gameState = GET_READY;
+                    resetGame(0);
+                }
+            }
         }
     }
-
-
 
     public void resetGame(int resetType){
         if(resetType == 1) {
-            score = 0;
+            this.score = 0;
             this.lives.resetLive(this.life);
-            bricks.resetBricks(this.width, this.height);
+            this.bricks.resetBricks(this.width, this.height);
             this.brickW = bricks.getBrickW();
             this.brickH = bricks.getBrickH();
             this.gameThread = null;
-            this.paddleThread = null;
-            this.gameState = GET_READY;
+            this.isWon = false;
         }
         this.ball.resetBall(this.width/2, this.height-150-this.brickH/2-this.brickH/2);
         this.paddle.resetPaddle(this.width/2 - brickW/2, height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
@@ -256,4 +244,22 @@ public class GameView extends View {
     public void setScore(){
         this.score += 5 * (this.lives.getCurrLife()+1);
     }
+
+    public void setThread()
+    {
+        if(this.gameThread == null) {
+            this.gameThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (gameState == PLAYING) {
+                        postInvalidate();
+                        SystemClock.sleep(3);
+                    }
+                    gameThread = null;
+                }
+            });
+            this.gameThread.start();
+        }
+    }
+
 }

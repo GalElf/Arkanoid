@@ -14,10 +14,6 @@ public class Paddle {
     public Paddle(float xStart, float yStart, float xEnd, float yEnd)
     {
         paddle = new Brick(xStart, yStart, xEnd, yEnd);
-//        this.xStart = xStart;
-//        this.yStart = yStart;
-//        this.xEnd = xEnd;
-//        this.yEnd = yEnd;
 
         this.paddlePaint = new Paint();
         this.paddlePaint.setColor(Color.WHITE);
@@ -38,7 +34,7 @@ public class Paddle {
 
     public void setX(float x, float brickW, float screenWidth)
     {
-        int pixelMovement = 5;
+        int pixelMovement = 15;
         if(x < screenWidth/2) {
             if (paddle.getXStart() - pixelMovement < 0) {
                 paddle.setXStart(0);
@@ -57,6 +53,10 @@ public class Paddle {
                 paddle.setXEnd(paddle.getXEnd() + pixelMovement);
             }
         }
+    }
+
+    public Brick getBrick() {
+        return paddle;
     }
 
     public float getXStart() {

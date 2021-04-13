@@ -27,6 +27,10 @@ public class Brick {
         this.isDead = isDead;
     }
 
+    public boolean getIsDead() {
+        return isDead;
+    }
+
     public void draw(Canvas canvas)
     {
         if(!this.isDead)
