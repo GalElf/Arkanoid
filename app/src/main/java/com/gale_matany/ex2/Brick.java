@@ -28,7 +28,7 @@ public class Brick {
     }
 
     public boolean getIsDead() {
-        return isDead;
+        return !isDead;
     }
 
     public void draw(Canvas canvas)

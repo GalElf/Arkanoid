@@ -90,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     public boolean isRunThreadGame() {
         return runThreadGame;
     }

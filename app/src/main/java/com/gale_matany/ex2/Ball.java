@@ -47,7 +47,7 @@ public class Ball {
     }
 
     public boolean checkBallCollideBricks(Brick brick){
-        if(!brick.getIsDead()) {
+        if(brick.getIsDead()) {
             float top = brick.getYStart();
             float bottom = brick.getYEnd();
             float left = brick.getXStart();
