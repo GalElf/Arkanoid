@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.BatteryManager;
-import android.view.View;
 
 import androidx.core.app.NotificationCompat;
 
@@ -58,11 +57,8 @@ public class MyReceiver extends BroadcastReceiver {
             this.notificationManager.notify(this.notificationId, notification);
             this.sendNotification = false;
         }
-        if(this.batteryAmount >10 && !this.sendNotification){
+        if(this.batteryAmount > 10 && !this.sendNotification){
             this.sendNotification = true;
         }
     }
-
-
-
 }

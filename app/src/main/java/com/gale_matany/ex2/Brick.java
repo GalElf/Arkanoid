@@ -59,18 +59,18 @@ public class Brick {
     }
 
     public float getXStart() {
-        return xStart;
+        return this.xStart;
     }
 
     public float getYStart() {
-        return yStart;
+        return this.yStart;
     }
 
     public float getXEnd() {
-        return xEnd;
+        return this.xEnd;
     }
 
     public float getYEnd() {
-        return yEnd;
+        return this.yEnd;
     }
 }

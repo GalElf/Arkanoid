@@ -1,21 +1,15 @@
 package com.gale_matany.ex2;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
 
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.EditText;
 
 import java.util.Objects;
 
@@ -28,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
 
     private MyReceiver batteryReceiver;
     private IntentFilter filter;
+
+    private boolean runThreadGame;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,5 +75,27 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onStop();
         unregisterReceiver(batteryReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setRunThreadGame(true);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        setRunThreadGame(false);
+    }
+
+
+
+    public boolean isRunThreadGame() {
+        return runThreadGame;
+    }
+
+    public void setRunThreadGame(boolean runThreadGame) {
+        this.runThreadGame = runThreadGame;
     }
 }

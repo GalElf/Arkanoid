@@ -1,13 +1,9 @@
 package com.gale_matany.ex2;
 
-import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.media.MediaPlayer;
-import android.util.Log;
 import java.util.Random;
-
 
 public class Ball {
 
@@ -60,7 +56,6 @@ public class Ball {
             // left or right lower or upper corner
             if (((top <= this.y + this.dy && this.y + this.dy <= top+2) || (bottom-2 <= this.y + this.dy && this.y + this.dy <= bottom)) &&
                     ((left <= this.x + this.dx && this.x + this.dx <= left+2) || (right-2 <= this.x + this.dx && this.x + this.dx <= right))) {
-                Log.i("test", "test if corner");
                 this.dx = -this.dx;
                 this.dy = -this.dy;
                 this.y = this.y + this.dy;
@@ -122,26 +117,6 @@ public class Ball {
 
     public boolean isStrike(float height) {
         return height <= this.y + this.radius;
-    }
-
-    public float getX()
-    {
-        return this.x;
-    }
-
-    public void setX(float x)
-    {
-        this.x = x;
-    }
-
-    public float getY()
-    {
-        return y;
-    }
-
-    public void setY(float y)
-    {
-        this.y = y;
     }
 
     public void draw(Canvas canvas)

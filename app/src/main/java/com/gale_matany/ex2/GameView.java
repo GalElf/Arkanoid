@@ -35,7 +35,7 @@ public class GameView extends View {
     private float xMove;
 
     private Thread gameThread;
-    private boolean paddleNeedToMove, threadGame;
+    private boolean paddleNeedToMove;
     private BrickCollection bricks;
     private Paddle paddle;
     private Ball ball;
@@ -47,6 +47,7 @@ public class GameView extends View {
     private float width, height;
     private final Context context;
 
+    private final MainActivity mainActivity;
 
 
     public GameView(Context context, AttributeSet attrs)
@@ -81,6 +82,9 @@ public class GameView extends View {
         this.paddleNeedToMove = false;
         this.isWon = false;
 
+        mainActivity = (MainActivity) context;
+        mainActivity.setRunThreadGame(true);
+        Log.i("test", "GameView: " + mainActivity.isRunThreadGame() + "");
     }
 
 
@@ -88,7 +92,6 @@ public class GameView extends View {
     protected void onDraw(Canvas canvas)
     {
         super.onDraw(canvas);
-        Log.i("test", "game state: " + this.gameState);
 
         gamePlay();
         this.ball.draw(canvas);
@@ -124,6 +127,7 @@ public class GameView extends View {
     protected void onSizeChanged(int w, int h, int oldw, int oldh)
     {
         super.onSizeChanged(w, h, oldw, oldh);
+        setThread();
 
         this.width = getWidth();
         this.height = getHeight();
@@ -133,22 +137,20 @@ public class GameView extends View {
 
         this.xLifeDeath = getWidth()-320;
         this.yLifeDeath = 20;
-        this.lives = new Lives(this.life,this.width-100, this.yLifeDeath);
+        if(this.lives == null)
+            this.lives = new Lives(this.life,this.width-100, this.yLifeDeath);
 
-        this.bricks = new BrickCollection(width, height, this.cols, this.rows);
+        if(this.bricks == null)
+            this.bricks = new BrickCollection(width, height, this.cols, this.rows);
         this.brickW = this.bricks.getBrickW();
         this.brickH = this.bricks.getBrickH();
 
-        this.paddle = new Paddle(this.width/2 - this.brickW/2, this.height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
+        if(this.paddle == null)
+            this.paddle = new Paddle(this.width/2 - this.brickW/2, this.height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
 
-        this.ball = new Ball(this.width/2, this.height-150-this.brickH/2-this.brickH/2, this.brickH/2);
-//        int dis = 100;
-//        this.ball1 = new Ball(this.width/2, this.height-150-this.brickH/2-this.brickH/2-dis, this.brickH/2);
-//        this.ball2 = new Ball(this.width/2-this.brickW/2-dis-this.brickH/2, (float) (this.height-150-this.brickH*0.25), this.brickH/2);
-//        this.ball3 = new Ball(this.width/2+this.brickW/2+dis+this.brickH/2, (float) (this.height-150-this.brickH*0.25), this.brickH/2);
-//        this.ball4 = new Ball(this.width/2 - brickW/2-dis, height-150-this.brickH/2-dis, this.brickH/2);
-//        this.ball5 = new Ball(this.width/2 + brickW/2+dis, height-150-this.brickH/2-dis, this.brickH/2);
-//        this.ball = new Ball((float) (677.6667-50), 397+50, this.brickH/2);
+        if(this.ball == null)
+            this.ball = new Ball(this.width/2, this.height-150-this.brickH/2-this.brickH/2, this.brickH/2);
+
 
     }
 
@@ -157,15 +159,12 @@ public class GameView extends View {
     {
         this.xMove = event.getX();
 
-        setThread();
-
         switch (event.getAction())
         {
             case MotionEvent.ACTION_DOWN:
                 if(this.gameState == GET_READY)
                 {
                     this.gameState = PLAYING;
-                    invalidate();
                 }
 
                 if(this.gameState == PLAYING)
@@ -175,7 +174,6 @@ public class GameView extends View {
                 {
                     this.gameState = GET_READY;
                     resetGame(1);
-                    invalidate();
                 }
                 break;
 
@@ -199,7 +197,7 @@ public class GameView extends View {
                 for(int j=0; j<bricks.getCols(); j++){
                     boolean isCollide = ball.checkBallCollideBricks(this.bricks.getBrick(i, j));
                     if(isCollide){
-                        MediaPlayer mp = MediaPlayer.create(this.context, R.raw.brick_broken3);
+                        MediaPlayer mp = MediaPlayer.create(this.context, R.raw.hit_sound);
                         mp.start();
                         mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                             public void onCompletion(MediaPlayer mp) {
@@ -217,9 +215,9 @@ public class GameView extends View {
             boolean isStrike = ball.isStrike(height);
             if (isStrike) {
                 this.lives.setDead(death);
-                if (lives.getCurrLife() == -1)
+                if (lives.getCurrLife() == -1) {
                     this.gameState = GAME_OVER;
-                else {
+                } else {
                     this.gameState = GET_READY;
                     resetGame(0);
                 }
@@ -227,11 +225,11 @@ public class GameView extends View {
         }
     }
 
-    public void resetGame(int resetType){
+    private void resetGame(int resetType){
         if(resetType == 1) {
             this.score = 0;
             this.lives.resetLive(this.life);
-            this.bricks.resetBricks(this.width, this.height);
+            this.bricks.resetBricks();
             this.brickW = bricks.getBrickW();
             this.brickH = bricks.getBrickH();
             this.gameThread = null;
@@ -241,25 +239,29 @@ public class GameView extends View {
         this.paddle.resetPaddle(this.width/2 - brickW/2, height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
     }
 
-    public void setScore(){
+    private void setScore(){
         this.score += 5 * (this.lives.getCurrLife()+1);
     }
 
     public void setThread()
     {
         if(this.gameThread == null) {
+            Log.i("test", "enter if thread");
             this.gameThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    while (gameState == PLAYING) {
+                    Log.i("test", "is alive");
+                    while (mainActivity.isRunThreadGame()) {
                         postInvalidate();
                         SystemClock.sleep(3);
                     }
+                    Log.i("test", "is dead");
                     gameThread = null;
                 }
             });
             this.gameThread.start();
         }
     }
+
 
 }
