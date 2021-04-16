@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private MyReceiver batteryReceiver;
     private IntentFilter filter;
 
-    private boolean runThreadGame;
+    private GameView gameView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
         notificationsSetup();
         broadcastSetup();
+
+        gameView = (GameView) findViewById(R.id.game_id);
     }
 
     private void broadcastSetup()
@@ -80,21 +82,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        setRunThreadGame(true);
+        gameView.setRunThreadGame(true);
+        gameView.setThread();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        setRunThreadGame(false);
-    }
-
-
-    public boolean isRunThreadGame() {
-        return runThreadGame;
-    }
-
-    public void setRunThreadGame(boolean runThreadGame) {
-        this.runThreadGame = runThreadGame;
+        gameView.setRunThreadGame(false);
     }
 }

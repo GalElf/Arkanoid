@@ -26,33 +26,26 @@ public class GameView extends View {
 
     private final int cols, rows;
 
+    private final Context context;
 
-    private int gameState;
-    boolean isWon;
+    private int gameState, score;
+    private boolean isWon, paddleNeedToMove, runThreadGame;
     private final Paint textStartGamePaint, textPaint, textLivesPaint;
-    private float xTextScore, yTextScore, xLifeDeath, yLifeDeath, brickW, brickH;
-    private int score;
-    private float xMove;
+    private float width, height, xTextScore, yTextScore, xLifeDeath, yLifeDeath, brickW, brickH, xMove;
 
     private Thread gameThread;
-    private boolean paddleNeedToMove;
     private BrickCollection bricks;
     private Paddle paddle;
     private Ball ball;
     private Lives lives;
 
-    private Bitmap life;
-    private Bitmap death;
-
-    private float width, height;
-    private final Context context;
-
-    private final MainActivity mainActivity;
+    private Bitmap life, death;
 
 
     public GameView(Context context, AttributeSet attrs)
     {
         super(context, attrs);
+
         this.context = context;
         this.textStartGamePaint = new Paint();
         this.textStartGamePaint.setColor(Color.WHITE);
@@ -68,8 +61,8 @@ public class GameView extends View {
         this.textLivesPaint.setTextSize(70);
         this.textLivesPaint.setTextAlign(Paint.Align.RIGHT);
 
-        this.cols = (int) (Math.random() * (this.MAX_COLS+1 - this.MIN_COLS)) + this.MIN_COLS;
-        this.rows = (int) (Math.random() * (this.MAX_ROWS+1 - this.MIN_ROWS)) + this.MIN_ROWS;
+        this.cols = (int) (Math.random() * (MAX_COLS+1 - MIN_COLS)) + MIN_COLS;
+        this.rows = (int) (Math.random() * (MAX_ROWS+1 - MIN_ROWS)) + MIN_ROWS;
 
         this.score = 0;
         this.gameState = GET_READY;
@@ -81,10 +74,9 @@ public class GameView extends View {
 
         this.paddleNeedToMove = false;
         this.isWon = false;
+        this.runThreadGame = true;
 
-        mainActivity = (MainActivity) context;
-        mainActivity.setRunThreadGame(true);
-        Log.i("test", "GameView: " + mainActivity.isRunThreadGame() + "");
+
     }
 
 
@@ -101,7 +93,6 @@ public class GameView extends View {
         this.lives.drawLife(canvas);
         canvas.drawText("Lives: ", this.xLifeDeath, this.yTextScore, this.textLivesPaint);
         canvas.drawText("Score: " + this.score, this.xTextScore, this.yTextScore, this.textPaint);
-
 
         if(this.gameState == GET_READY)
         {
@@ -127,7 +118,6 @@ public class GameView extends View {
     protected void onSizeChanged(int w, int h, int oldw, int oldh)
     {
         super.onSizeChanged(w, h, oldw, oldh);
-        setThread();
 
         this.width = getWidth();
         this.height = getHeight();
@@ -137,6 +127,8 @@ public class GameView extends View {
 
         this.xLifeDeath = getWidth()-320;
         this.yLifeDeath = 20;
+
+
         if(this.lives == null)
             this.lives = new Lives(this.life,this.width-100, this.yLifeDeath);
 
@@ -150,8 +142,6 @@ public class GameView extends View {
 
         if(this.ball == null)
             this.ball = new Ball(this.width/2, this.height-150-this.brickH/2-this.brickH/2, this.brickH/2);
-
-
     }
 
     @Override
@@ -163,9 +153,7 @@ public class GameView extends View {
         {
             case MotionEvent.ACTION_DOWN:
                 if(this.gameState == GET_READY)
-                {
                     this.gameState = PLAYING;
-                }
 
                 if(this.gameState == PLAYING)
                     this.paddleNeedToMove = true;
@@ -190,34 +178,33 @@ public class GameView extends View {
     }
 
     private void gamePlay(){
-        if (gameState == PLAYING) {
+        if (this.gameState == PLAYING) {
             this.ball.move(this.width, this.height);
             this.ball.checkBallCollideBrick(this.paddle);
-            for(int i=0; i<bricks.getRows(); i++){
-                for(int j=0; j<bricks.getCols(); j++){
-                    boolean isCollide = ball.checkBallCollideBricks(this.bricks.getBrick(i, j));
-                    if(isCollide){
-                        MediaPlayer mp = MediaPlayer.create(this.context, R.raw.hit_sound);
-                        mp.start();
-                        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            public void onCompletion(MediaPlayer mp) {
-                                mp.reset();
-                                mp.release();
-                            }
-                        });
+            for(int i=0; i<this.bricks.getRows(); i++) {
+                boolean isCollide = false;
+                for (int j = 0; j < this.bricks.getCols(); j++) {
+                    isCollide = ball.checkBallCollideBricks(this.bricks.getBrick(i, j));
+                    if (isCollide) {
                         setScore();
+                        makeSoundAfterHit();
+                        break;
                     }
                 }
+                if (isCollide) {
+                    break;
+                }
             }
+
             this.isWon = this.bricks.checkWin();
             if(this.isWon)
                 this.gameState = GAME_OVER;
-            boolean isStrike = ball.isStrike(height);
+            boolean isStrike = this.ball.isStrike(this.height);
             if (isStrike) {
-                this.lives.setDead(death);
-                if (lives.getCurrLife() == -1) {
+                this.lives.setDead(this.death);
+                if (this.lives.getCurrLife() == -1)
                     this.gameState = GAME_OVER;
-                } else {
+                else {
                     this.gameState = GET_READY;
                     resetGame(0);
                 }
@@ -225,7 +212,19 @@ public class GameView extends View {
         }
     }
 
-    private void resetGame(int resetType){
+    private void makeSoundAfterHit(){
+        MediaPlayer mp = MediaPlayer.create(this.context, R.raw.sound_hit);
+        mp.start();
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
+                mp.reset();
+                mp.release();
+            }
+        });
+    }
+
+    private void resetGame(int resetType)
+    {
         if(resetType == 1) {
             this.score = 0;
             this.lives.resetLive(this.life);
@@ -239,23 +238,21 @@ public class GameView extends View {
         this.paddle.resetPaddle(this.width/2 - brickW/2, height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
     }
 
-    private void setScore(){
+    private void setScore()
+    {
         this.score += 5 * (this.lives.getCurrLife()+1);
     }
 
     public void setThread()
     {
         if(this.gameThread == null) {
-            Log.i("test", "enter if thread");
             this.gameThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.i("test", "is alive");
-                    while (mainActivity.isRunThreadGame()) {
+                    while (runThreadGame) {
                         postInvalidate();
-                        SystemClock.sleep(3);
+                        SystemClock.sleep(5);
                     }
-                    Log.i("test", "is dead");
                     gameThread = null;
                 }
             });
@@ -263,5 +260,8 @@ public class GameView extends View {
         }
     }
 
+    public void setRunThreadGame(boolean runThreadGame) {
+        this.runThreadGame = runThreadGame;
+    }
 
 }
