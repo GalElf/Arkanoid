@@ -27,13 +27,14 @@ public class Ball {
         this.ballPaint.setStyle(Paint.Style.FILL);
     }
 
+    // generate dx dy for the speed of the ball every start of GET READY STATE
     public void generateRandomBallSpeed(){
         int direction = new Random().nextBoolean() ? 1 : -1;
         this.dx = direction*((float)((Math.random() * (BALL_SPEED_MAX+1 - BALL_SPEED_MIN)) + BALL_SPEED_MIN));
         this.dy = -((float)((Math.random() * (BALL_SPEED_MAX+1 - BALL_SPEED_MIN)) + BALL_SPEED_MIN));
     }
 
-
+    // move the ball against the wall, brick and paddle
     public void move(float width, float height)
     {
         this.x = this.x + this.dx;
@@ -46,6 +47,7 @@ public class Ball {
             this.dy = -this.dy;
     }
 
+    // check for collide between bricks
     public boolean checkBallCollideBricks(Brick brick){
         if(brick.getIsDead()) {
             float top = brick.getYStart();
@@ -83,7 +85,7 @@ public class Ball {
         return false;
     }
 
-
+    // check for collide between the paddle
     public void checkBallCollideBrick(Paddle paddle){
         float top = paddle.getYStart();
         float bottom = paddle.getYEnd();
@@ -108,17 +110,19 @@ public class Ball {
         }
     }
 
+    // reset the ball location to current x and y that receive
     public void resetBall(float x, float y) {
         generateRandomBallSpeed();
         this.x = x;
         this.y = y;
     }
 
-
+    // check if the ball miss the paddle location
     public boolean isStrike(float height) {
         return height <= this.y + this.radius;
     }
 
+    // draw the ball on the canvas in the app
     public void draw(Canvas canvas)
     {
         canvas.drawCircle(this.x, this.y, this.radius, this.ballPaint);

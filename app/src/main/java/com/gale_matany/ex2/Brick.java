@@ -23,24 +23,30 @@ public class Brick {
         this.brickPaint.setStyle(Paint.Style.FILL);
     }
 
+    // change the state of brick to dead
     public void setIsDead(boolean isDead){
         this.isDead = isDead;
     }
 
+    // return if brick is dead or not
     public boolean getIsDead() {
         return !isDead;
     }
 
+    // draw the brick on the canvas in the app
     public void draw(Canvas canvas)
     {
         if(!this.isDead)
             canvas.drawRect(this.xStart, this.yStart, this.xEnd, this.yEnd, this.brickPaint);
     }
 
+    // draw for the paddle on the canvas in the app
     public void draw(Canvas canvas, Paint paint)
     {
             canvas.drawRect(this.xStart, this.yStart, this.xEnd, this.yEnd, paint);
     }
+
+    // change the x y of all the point of the brick
 
     public void setXStart(float xStart) {
         this.xStart = xStart;

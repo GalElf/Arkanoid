@@ -23,17 +23,20 @@ public class Lives {
         initLives(life);
     }
 
+    // init all the live to state of true (is living)
     public void initLives(Bitmap life) {
         for (int i=0; i<NUM_LIVES; i++) {
             lives[i] = life;
         }
     }
 
+    // change the next life to state of false (is dead)
     public void setDead(Bitmap death) {
         this.lives[this.currLife] = death;
         this.currLife--;
     }
 
+    // reset all life to live
     public void resetLive(Bitmap life) {
         for (int i=0; i<NUM_LIVES; i++) {
             lives[i] = life;
@@ -41,10 +44,12 @@ public class Lives {
         this.currLife = 2;
     }
 
+    // return how many life have left
     public int getCurrLife(){
         return this.currLife;
     }
 
+    // draw 3 live on the canvas in the app
     public void drawLife(Canvas canvas){
         canvas.drawBitmap(lives[0], this.xStart, this.yStart, livesPaint);
         canvas.drawBitmap(lives[1], this.xStart-100, this.yStart, livesPaint);

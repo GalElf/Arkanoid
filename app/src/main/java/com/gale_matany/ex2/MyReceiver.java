@@ -42,6 +42,7 @@ public class MyReceiver extends BroadcastReceiver {
         }
     }
 
+    // create notification that pop up after the battery is 10% and under one time
     public void sendNotify()
     {
         if(this.batteryAmount <= 10 && !this.isCharging && this.sendNotification) {

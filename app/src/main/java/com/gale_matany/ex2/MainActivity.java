@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
         notificationID = 1;
     }
 
-
     @Override
     protected void onStart()
     {
@@ -82,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // start the thread of the animation after he died
         gameView.setRunThreadGame(true);
         gameView.setThread();
     }
@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        // kill the thread when close the app
         gameView.setRunThreadGame(false);
     }
 }

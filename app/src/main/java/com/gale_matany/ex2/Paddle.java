@@ -17,6 +17,7 @@ public class Paddle {
         this.paddlePaint.setStyle(Paint.Style.FILL);
     }
 
+    // reset the paddle to his first location
     public void resetPaddle(float xStart, float yStart, float xEnd, float yEnd){
         this.paddle.setXStart(xStart);
         this.paddle.setYStart(yStart);
@@ -24,11 +25,13 @@ public class Paddle {
         this.paddle.setYEnd(yEnd);
     }
 
+    // draw paddle on the canvas in the app
     public void draw(Canvas canvas)
     {
         this.paddle.draw(canvas, this.paddlePaint);
     }
 
+    // change the paddle x location left or right according to the touch of the user
     public void setX(float x, float brickW, float screenWidth)
     {
         int pixelMovement = 15;
@@ -52,7 +55,7 @@ public class Paddle {
         }
     }
 
-
+    // return all the x y point of the paddle
     public float getXStart() {
         return this.paddle.getXStart();
     }

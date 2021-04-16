@@ -22,6 +22,7 @@ public class BrickCollection {
         crateBricks();
     }
 
+    // init the all the bricks
     private void crateBricks(){
         int startH = 220;
         for(int i=0; i<this.rows; i++){
@@ -32,6 +33,7 @@ public class BrickCollection {
         }
     }
 
+    // reset the bricks to start new game - reset them from dead to live
     public void resetBricks(){
         for(int i=0; i<this.rows; i++){
             for(int j=0; j<this.cols; j++){
@@ -40,6 +42,7 @@ public class BrickCollection {
         }
     }
 
+    // check if all the brick are dead
     public boolean checkWin(){
         for(int i=0; i<this.rows; i++){
             for(int j=0; j<this.cols; j++){
@@ -51,14 +54,17 @@ public class BrickCollection {
         return true;
     }
 
+    // return brick width
     public float getBrickW(){
         return this.brickW;
     }
 
+    // return brick height
     public float getBrickH(){
         return this.brickH;
     }
 
+    // draw all the brick on the canvas in the app
     public void draw(Canvas canvas){
         for(int i=0; i<this.rows; i++){
             for(int j=0; j<this.cols; j++){
@@ -67,14 +73,17 @@ public class BrickCollection {
         }
     }
 
+    // return the number of columns
     public int getCols() {
         return this.cols;
     }
 
+    // return the number of rows
     public int getRows() {
         return this.rows;
     }
 
+    // return specific brick according to i j in the 2D array
     public Brick getBrick(int i, int j) {
         return this.bricks[i][j];
     }

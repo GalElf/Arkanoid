@@ -9,7 +9,6 @@ import android.graphics.Paint;
 import android.media.MediaPlayer;
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -47,6 +46,7 @@ public class GameView extends View {
         super(context, attrs);
 
         this.context = context;
+        // init all the paint for the canvas
         this.textStartGamePaint = new Paint();
         this.textStartGamePaint.setColor(Color.WHITE);
         this.textStartGamePaint.setTextSize(100);
@@ -64,6 +64,7 @@ public class GameView extends View {
         this.cols = (int) (Math.random() * (MAX_COLS+1 - MIN_COLS)) + MIN_COLS;
         this.rows = (int) (Math.random() * (MAX_ROWS+1 - MIN_ROWS)) + MIN_ROWS;
 
+        // init all variables
         this.score = 0;
         this.gameState = GET_READY;
         this.life = BitmapFactory.decodeResource(getResources(), R.drawable.life);
@@ -75,11 +76,9 @@ public class GameView extends View {
         this.paddleNeedToMove = false;
         this.isWon = false;
         this.runThreadGame = true;
-
-
     }
 
-
+    // draw all the images on the app
     @Override
     protected void onDraw(Canvas canvas)
     {
@@ -177,6 +176,8 @@ public class GameView extends View {
         return true;
     }
 
+    // the method is in charge of moving the ball, check for collide with the paddle and the bricks
+    // changing the score and change the state of the game if we are losing or winning the game
     private void gamePlay(){
         if (this.gameState == PLAYING) {
             this.ball.move(this.width, this.height);
@@ -212,6 +213,7 @@ public class GameView extends View {
         }
     }
 
+    // make sound if we hit brick
     private void makeSoundAfterHit(){
         MediaPlayer mp = MediaPlayer.create(this.context, R.raw.sound_hit);
         mp.start();
@@ -223,6 +225,9 @@ public class GameView extends View {
         });
     }
 
+    // reset the game after losing life or all the life
+    // 0 - reset for paddle and ball only - if we still have life remaining
+    // 1 - reset the entire board - if all the life have been gone
     private void resetGame(int resetType)
     {
         if(resetType == 1) {
@@ -238,11 +243,13 @@ public class GameView extends View {
         this.paddle.resetPaddle(this.width/2 - brickW/2, height-150-this.brickH/2, this.width/2 + this.brickW/2, this.height-150);
     }
 
+    // change the score if there was a hit in brick
     private void setScore()
     {
         this.score += 5 * (this.lives.getCurrLife()+1);
     }
 
+    // thread that is charge on the animation movement
     public void setThread()
     {
         if(this.gameThread == null) {
@@ -260,6 +267,7 @@ public class GameView extends View {
         }
     }
 
+    // change the loop in the thread to true or false depend if we were close or opening the app
     public void setRunThreadGame(boolean runThreadGame) {
         this.runThreadGame = runThreadGame;
     }
