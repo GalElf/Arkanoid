@@ -7,6 +7,7 @@ public class BrickCollection {
     private final int SPACE = 5;
 
     private final int cols, rows;
+    private int howManyBricksLeft;
     private final float brickW, brickH;
 
     private final Brick[][] bricks;
@@ -15,6 +16,7 @@ public class BrickCollection {
     {
         this.rows = rows;
         this.cols = cols;
+        this.howManyBricksLeft = this.rows * this.cols;
         this.brickW = (width-((this.cols-1)*this.SPACE))/this.cols;
         this.brickH = height/20;
 
@@ -40,18 +42,7 @@ public class BrickCollection {
                 this.bricks[i][j].setIsDead(false);
             }
         }
-    }
-
-    // check if all the brick are dead
-    public boolean checkWin(){
-        for(int i=0; i<this.rows; i++){
-            for(int j=0; j<this.cols; j++){
-                if(this.bricks[i][j].getIsDead()){
-                    return false;
-                }
-            }
-        }
-        return true;
+        this.howManyBricksLeft = this.rows * this.cols;
     }
 
     // return brick width
@@ -86,5 +77,17 @@ public class BrickCollection {
     // return specific brick according to i j in the 2D array
     public Brick getBrick(int i, int j) {
         return this.bricks[i][j];
+    }
+
+
+    // count for how many brick left
+    // we change the count -1 every collide with the bal
+    // if its will be equal to 0 then the game is over
+    public int getHowManyBricksLeft() {
+        return howManyBricksLeft;
+    }
+
+    public void setHowManyBricksLeft(int howManyBricksLeft) {
+        this.howManyBricksLeft = howManyBricksLeft;
     }
 }

@@ -13,12 +13,11 @@ import androidx.core.app.NotificationCompat;
 public class MyReceiver extends BroadcastReceiver {
 
     private int batteryAmount;
-    private boolean isCharging;
+    private boolean isCharging, sendNotification;
     private final Context context;
     private final String channelId;
     private final int notificationId;
     private final NotificationManager notificationManager;
-    private boolean sendNotification;
 
     public MyReceiver(Context context, String channelId, int notificationId, NotificationManager notificationManager){
         this.context = context;

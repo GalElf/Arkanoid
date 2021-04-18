@@ -187,6 +187,7 @@ public class GameView extends View {
                 for (int j = 0; j < this.bricks.getCols(); j++) {
                     isCollide = ball.checkBallCollideBricks(this.bricks.getBrick(i, j));
                     if (isCollide) {
+                        this.bricks.setHowManyBricksLeft(this.bricks.getHowManyBricksLeft()-1);
                         setScore();
                         makeSoundAfterHit();
                         break;
@@ -196,8 +197,7 @@ public class GameView extends View {
                     break;
                 }
             }
-
-            this.isWon = this.bricks.checkWin();
+            this.isWon = this.bricks.getHowManyBricksLeft() == 0;
             if(this.isWon)
                 this.gameState = GAME_OVER;
             boolean isStrike = this.ball.isStrike(this.height);
